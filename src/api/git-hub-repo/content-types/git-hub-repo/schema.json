@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "git_hub_repos",
+  "info": {
+    "singularName": "git-hub-repo",
+    "pluralName": "git-hub-repos",
+    "displayName": "GitHub Repo",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "longDescription": {
+      "type": "richtext"
+    }
+  }
+}

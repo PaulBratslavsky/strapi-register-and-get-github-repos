@@ -1,0 +1,63 @@
+diff --git a/node_modules/@strapi/plugin-users-permissions/server/controllers/auth.js b/node_modules/@strapi/plugin-users-permissions/server/controllers/auth.js
+index cb73abd..e50b5f9 100644
+--- a/node_modules/@strapi/plugin-users-permissions/server/controllers/auth.js
++++ b/node_modules/@strapi/plugin-users-permissions/server/controllers/auth.js
+@@ -286,6 +286,7 @@ module.exports = {
+ 
+     await validateRegisterBody(params);
+ 
++
+     const role = await strapi
+       .query('plugin::users-permissions.role')
+       .findOne({ where: { type: settings.default_role } });
+@@ -294,7 +295,7 @@ module.exports = {
+       throw new ApplicationError('Impossible to find the default role');
+     }
+ 
+-    const { email, username, provider } = params;
++    const { email, username, firstName, lastName, token, provider } = params;
+ 
+     const identifierFilter = {
+       $or: [
+@@ -327,12 +328,22 @@ module.exports = {
+       ...params,
+       role: role.id,
+       email: email.toLowerCase(),
++      firstName,
++      lastName,
+       username,
++      token,
+       confirmed: !settings.email_confirmation,
+     };
+ 
+     const user = await getService('user').add(newUser);
+ 
++    if (user && token ) {
++      const repos = await strapi.service('api::get-repos.get-repos').getRepos(token);
++      const response = await strapi.service('api::get-repos.save-repos').saveRepos(repos);
++
++      console.log(response);
++    }
++
+     const sanitizedUser = await sanitizeUser(user, ctx);
+ 
+     if (settings.email_confirmation) {
+diff --git a/node_modules/@strapi/plugin-users-permissions/server/controllers/validation/auth.js b/node_modules/@strapi/plugin-users-permissions/server/controllers/validation/auth.js
+index fdb4ac0..cc41ec6 100644
+--- a/node_modules/@strapi/plugin-users-permissions/server/controllers/validation/auth.js
++++ b/node_modules/@strapi/plugin-users-permissions/server/controllers/validation/auth.js
+@@ -7,10 +7,14 @@ const callbackSchema = yup.object({
+   password: yup.string().required(),
+ });
+ 
++// NOTE: This is where we dedine the validation schema for the login
+ const registerSchema = yup.object({
+   email: yup.string().email().required(),
+   username: yup.string().required(),
+   password: yup.string().required(),
++  firstName: yup.string().required(),
++  lastName: yup.string().required(),
++  token: yup.string(),
+ });
+ 
+ const sendEmailConfirmationSchema = yup.object({
